@@ -282,7 +282,7 @@ func ReadTags(path string) (map[string]string, error) {
 }
 
 func init() {
-	fmt.Println("x")
+	fmt.Println("xx")
 	cfg, ok := config[osType]
 	if !ok {
 		initErr = errors.New("Unsupported OS.")
