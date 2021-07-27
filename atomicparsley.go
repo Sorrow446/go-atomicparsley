@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"fmt"
 )
 
 const osType = runtime.GOOS
