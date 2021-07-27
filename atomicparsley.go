@@ -244,16 +244,17 @@ func parseTags(stringBuffer string) map[string]string {
 		for num, regexString := range regexes {
 			regex := regexp.MustCompile(regexString)
 			match := regex.FindStringSubmatch(colonSplit[0])
-			if match != nil {
-				trimmedVal := strings.TrimSpace(colonSplit[1])
-				if num == 0 {
-					resolvedKey, ok := resolveKeys[match[1]]
-					if ok {
-						parsedTags[resolvedKey] = trimmedVal
-					}
-				} else if num == 1 {
-					parsedTags[match[1]] = trimmedVal
+			if match == nil {
+				continue
+			}
+			trimmedVal := strings.TrimSpace(colonSplit[1])
+			if num == 0 {
+				resolvedKey, ok := resolveKeys[match[1]]
+				if ok {
+					parsedTags[resolvedKey] = trimmedVal
 				}
+			} else if num == 1 {
+				parsedTags[match[1]] = trimmedVal
 			}
 		}
 	}
