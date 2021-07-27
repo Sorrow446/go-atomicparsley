@@ -2,7 +2,6 @@ package atomicparsley
 
 import (
 	"errors"
-	"fmt"
 	"io"
 	"net/http"
 	"os"
