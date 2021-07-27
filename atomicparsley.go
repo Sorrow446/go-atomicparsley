@@ -184,7 +184,7 @@ func WriteTags(path string, tags map[string]string) error {
 	args := []string{path}
 	base := atomicPath
 	if osType != "windows" {
- 		base = "/" + base
+ 		base = "//" + base
 	}
 	for k, v := range tags {
 		args = append(args, "--"+k, v)
