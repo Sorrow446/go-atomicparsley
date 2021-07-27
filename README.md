@@ -1,5 +1,5 @@
 # go-atomicparsley
-Go wrapper for the mp4/m4a tagger AtomicParsley.
+Go wrapper for the mp4/m4a tagger AtomicParsley for Windows, Linux and macOS.
 
 # Setup
 ```go
