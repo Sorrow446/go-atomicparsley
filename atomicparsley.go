@@ -65,6 +65,7 @@ var (
 	}
 	resolveKeys = map[string]string{
 		"©alb": "album",
+		"©ART": "artist",
 		"©cmt": "comment",
 		"©con": "conductor",
 		"©day": "year",
@@ -147,6 +148,7 @@ func downloadBinary(filename string) error {
 	if err != nil {
 		return err
 	}
+	defer f.Close()
 	url := "https://github.com/Sorrow446/go-atomicparsley/releases/download/Bins/" + filename
 	req, err := http.NewRequest(
 		http.MethodGet, url, nil,
@@ -214,6 +216,7 @@ func checkInput(path string, tags map[string]string) (map[string]string, error) 
 }
 
 func WriteTags(path string, tags map[string]string) error {
+	var errBuffer bytes.Buffer
 	if initErr != nil {
 		return initErr
 	}
@@ -227,7 +230,12 @@ func WriteTags(path string, tags map[string]string) error {
 	}
 	args = append(args, "-W")
 	cmd := exec.Command(atomicPath, args...)
-	cmd.Stderr = os.Stdout
+	cmd.Stderr = &errBuffer
+	err = cmd.Run()
+	if err != nil {
+		errString := fmt.Sprintf("%s\n%s", err, errBuffer.String())
+		return errors.New(errString)
+	}
 	err = cmd.Run()
 	return err
 }
@@ -237,11 +245,11 @@ func parseTags(stringBuffer string) map[string]string {
 	var parsedTags = map[string]string{}
 	newLineSplit := strings.Split(stringBuffer, "\n")
 	regexes := [2]string{
-		`^Atom "([©a-zA-]+)"$`,
-		`^Atom "----" \[com.apple.iTunes;([A-Z]+)]`,
+		`Atom "((?:©)[a-zA-Z]+|[a-z]+)"`,
+		`Atom "----" \[com.apple.iTunes;([A-Z]+)]`,
 	}
-	for _, x := range newLineSplit[:len(newLineSplit)-1] {
-		colonSplit := strings.SplitN(x, " contains: ", 2)
+	for _, line := range newLineSplit[:len(newLineSplit)-1] {
+		colonSplit := strings.SplitN(line, " contains: ", 2)
 		for num, regexString := range regexes {
 			regex := regexp.MustCompile(regexString)
 			match := regex.FindStringSubmatch(colonSplit[0])
@@ -275,14 +283,14 @@ func ReadTags(path string) (map[string]string, error) {
 	cmd.Stdout = &outBuffer
 	err := cmd.Run()
 	if err != nil {
-		return nil, errors.New(errBuffer.String())
+		errString := fmt.Sprintf("%s\n%s", err, errBuffer.String())
+		return nil, errors.New(errString)
 	}
 	parsedTags := parseTags(outBuffer.String())
 	return parsedTags, err
 }
 
 func init() {
-	fmt.Println("xx")
 	cfg, ok := config[osType]
 	if !ok {
 		initErr = errors.New("Unsupported OS.")
