@@ -3,6 +3,7 @@ package atomicparsley
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -281,6 +282,7 @@ func ReadTags(path string) (map[string]string, error) {
 }
 
 func init() {
+	fmt.Println("x")
 	cfg, ok := config[osType]
 	if !ok {
 		initErr = errors.New("Unsupported OS.")
