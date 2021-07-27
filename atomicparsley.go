@@ -126,7 +126,7 @@ func init() {
 	}
 }
 
-func writeTags(path string, tags map[string]string) error {
+func WriteTags(path string, tags map[string]string) error {
 	args := []string{path}
 	base := atomicPath
 	if osType == "linux" {
