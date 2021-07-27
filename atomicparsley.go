@@ -1,12 +1,9 @@
 package atomicparsley
 
 import (
-	"archive/zip"
-	"bytes"
 	"errors"
+	"fmt"
 	"io"
-	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -16,7 +13,68 @@ import (
 
 const osType = runtime.GOOS
 
-var atomicPath string
+var (
+	atomicPath string
+	initErr    error
+	atomicArgs = []string{
+		"advisory",
+		"album",
+		"albumArtist",
+		"apID",
+		"artist",
+		"artwork",
+		"bpm",
+		"category",
+		"cnID",
+		"comment",
+		"compilation",
+		"composer",
+		"contentRating",
+		"copyright",
+		"description",
+		"disk",
+		"encodedBy",
+		"encodingTool",
+		"gapless",
+		"geID",
+		"genre",
+		"grouping",
+		"hdvideo",
+		"keyword",
+		"longdesc",
+		"lyrics",
+		"lyricsFile",
+		"podcastGUID",
+		"podcastURL",
+		"productFlag",
+		"purchaseDate",
+		"stik",
+		"storedesc",
+		"title",
+		"tracknum",
+		"TVEpisode",
+		"TVEpisodeNum",
+		"TVNetwork",
+		"TVSeasonNum",
+		"TVShowName",
+		"xID",
+		"year",
+	}
+	config = map[string]map[string]string{
+		"windows": {
+			"atomicPath": filepath.Join(os.Getenv("TMP"), "AtomicParsley.exe"),
+			"filename":   "AtomicParsleyWindows.exe",
+		},
+		"linux": {
+			"atomicPath": filepath.Join("/var/tmp/", "AtomicParsley"),
+			"filename":   "AtomicParsleyLinux",
+		},
+		"darwin": {
+			"atomicPath": filepath.Join("/var/tmp/", "AtomicParsley"),
+			"filename":   "AtomicParsleyMacOS",
+		},
+	}
+)
 
 func fileExists(path string) (bool, error) {
 	f, err := os.Stat(path)
@@ -28,21 +86,13 @@ func fileExists(path string) (bool, error) {
 	return false, err
 }
 
-func readZipFile(zf *zip.File) ([]byte, error) {
-	f, err := zf.Open()
-	if err != nil {
-		return nil, err
-	}
-	defer f.Close()
-	return ioutil.ReadAll(f)
-}
-
-func download(path, fname string) error {
-	f, err := os.Create(path)
+func downloadBinary(filename string) error {
+	f, err := os.Create(atomicPath)
 	if err != nil {
 		return err
 	}
-	url := "https://github.com/wez/atomicparsley/releases/download/20210715.151551.e7ad03a/" + fname
+	url := "https://github.com/Sorrow446/go-atomicparsley/releases/download/Bins/" + filename
+	fmt.Println(url)
 	req, err := http.NewRequest(
 		http.MethodGet, url, nil,
 	)
@@ -61,25 +111,12 @@ func download(path, fname string) error {
 	if do.StatusCode != http.StatusOK {
 		return errors.New(do.Status)
 	}
-	bodyBytes, err := ioutil.ReadAll(do.Body)
-	if err != nil {
-		return err
-	}
-	zipReader, err := zip.NewReader(bytes.NewReader(bodyBytes), int64(len(bodyBytes)))
-	if err != nil {
-		log.Fatal(err)
-	}
-	zf, err := zipReader.File[0].Open()
-	if err != nil {
-		return nil
-	}
-	defer zf.Close()
-	_, err = io.Copy(f, zf)
+	_, err = io.Copy(f, do.Body)
 	return err
 }
 
-func winSetup() error {
-	atomicPath = filepath.Join(os.Getenv("TMP"), "AtomicParsley.exe")
+func setup(cfg map[string]string) error {
+	atomicPath = cfg["atomicPath"]
 	exists, err := fileExists(atomicPath)
 	if err != nil {
 		return err
@@ -87,49 +124,68 @@ func winSetup() error {
 	if exists {
 		return nil
 	}
-	fname := "AtomicParsleyWindows.zip"
-	err = download(atomicPath, fname)
-	return err
-}
-
-func linuxSetup() error {
-	var fname string
-	atomicPath = filepath.Join("/var/tmp/", "AtomicParsley")
-	exists, err := fileExists(atomicPath)
+	err = downloadBinary(cfg["filename"])
 	if err != nil {
 		return err
 	}
-	if exists {
-		return nil
+	if osType != "windows" {
+		err = os.Chmod(atomicPath, 0755)
 	}
-	if osType == "linux" {
-		fname = "AtomicParsleyLinux.zip"
-	} else {
-		fname = "AtomicParsleyMacOS.zip"
-	}
-	err = download(atomicPath, fname)
-	if err != nil {
-		return err
-	}
-	err = os.Chmod(atomicPath, 0755)
 	return err
 }
 
-func init() {
-	switch os := osType; os {
-	case "windows":
-		winSetup()
-	case "linux":
-		linuxSetup()
-	default:
-		panic("Unsupported OS.")
+func filterTags(tags map[string]string) map[string]string {
+	filteredTags := map[string]string{}
+	for k, v := range tags {
+		for _, arg := range atomicArgs {
+			if arg == k {
+				filteredTags[k] = v
+				break
+			}
+		}
 	}
+	return filteredTags
+}
+
+func checkInput(path string, tags map[string]string) (map[string]string, error) {
+	if len(tags) == 0 {
+		return nil, errors.New("Tag map is empty.")
+	}
+	exists, err := fileExists(path)
+	if err != nil {
+		return nil, err
+	}
+	if !exists {
+		return nil, errors.New("Input file does not exist: " + path)
+	}
+	tags = filterTags(tags)
+	if len(tags) == 0 {
+		return nil, errors.New("All tags were filtered.")
+	}
+	coverValue, ok := tags["artwork"]
+	if ok {
+		exists, err := fileExists(coverValue)
+		if err != nil {
+			return nil, err
+		}
+		if !exists {
+			return nil, errors.New("Input cover file does not exist: " + coverValue)
+		}
+	}
+	return tags, err
 }
 
 func WriteTags(path string, tags map[string]string) error {
+	if initErr != nil {
+		return initErr
+	}
+	tags, err := checkInput(path, tags)
+	if err != nil {
+		return err
+	}
 	args := []string{path}
 	base := atomicPath
-	if osType == "linux" {
+	if osType != "windows" {
 		base = "./" + base
 	}
 	for k, v := range tags {
@@ -138,6 +194,15 @@ func WriteTags(path string, tags map[string]string) error {
 	args = append(args, "-W")
 	cmd := exec.Command(base, args...)
 	cmd.Stderr = os.Stdout
-	err := cmd.Run()
+	err = cmd.Run()
 	return err
+}
+
+func init() {
+	cfg, ok := config[osType]
+	if !ok {
+		initErr = errors.New("Unsupported OS.")
+	} else {
+		initErr = setup(cfg)
+	}
 }
