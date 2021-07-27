@@ -272,9 +272,9 @@ func ReadTags(path string) (map[string]string, error) {
 	cmd.Stdout = &outBuffer
 	err := cmd.Run()
 	if err != nil {
-		fmt.Println("x")
 		return nil, errors.New(errBuffer.String())
 	}
+	fmt.Println("x")
 	parsedTags := parseTags(outBuffer.String())
 	return parsedTags, err
 }
