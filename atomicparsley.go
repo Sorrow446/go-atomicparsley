@@ -8,7 +8,6 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
-	"fmt"
 )
 
 const osType = runtime.GOOS
@@ -66,11 +65,11 @@ var (
 			"filename":   "AtomicParsleyWindows.exe",
 		},
 		"linux": {
-			"atomicPath": filepath.Join("var", "tmp", "AtomicParsley"),
+			"atomicPath": "/" + filepath.Join("var", "tmp", "AtomicParsley"),
 			"filename":   "AtomicParsleyLinux",
 		},
 		"darwin": {
-			"atomicPath": filepath.Join("var", "tmp", "AtomicParsley"),
+			"atomicPath": "/" + filepath.Join("var", "tmp", "AtomicParsley"),
 			"filename":   "AtomicParsleyMacOS",
 		},
 	}
@@ -184,10 +183,6 @@ func WriteTags(path string, tags map[string]string) error {
 	}
 	args := []string{path}
 	base := atomicPath
-	if osType != "windows" {
- 		base = "/" + base
-		fmt.Println(base)
-	}
 	for k, v := range tags {
 		args = append(args, "--"+k, v)
 	}
