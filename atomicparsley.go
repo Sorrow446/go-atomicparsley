@@ -92,7 +92,6 @@ func downloadBinary(filename string) error {
 		return err
 	}
 	url := "https://github.com/Sorrow446/go-atomicparsley/releases/download/Bins/" + filename
-	fmt.Println(url)
 	req, err := http.NewRequest(
 		http.MethodGet, url, nil,
 	)
