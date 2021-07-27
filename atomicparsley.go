@@ -1,13 +1,16 @@
 package atomicparsley
 
 import (
+	"bytes"
 	"errors"
 	"io"
 	"net/http"
 	"os"
 	"os/exec"
 	"path/filepath"
+	"regexp"
 	"runtime"
+	"strings"
 )
 
 const osType = runtime.GOOS
@@ -58,6 +61,59 @@ var (
 		"TVShowName",
 		"xID",
 		"year",
+	}
+	resolveKeys = map[string]string{
+		"©alb": "album",
+		"©cmt": "comment",
+		"©con": "conductor",
+		"©day": "year",
+		"©dir": "director",
+		"©gen": "genre",
+		"©grp": "contentGroup",
+		"©lyr": "lyrics",
+		"©mvc": "movementTotal",
+		"©mvi": "movement",
+		"©mvn": "movementName",
+		"©nam": "title",
+		"©wrk": "work",
+		"©wrt": "composer",
+		"aART": "albumArtist",
+		"apID": "itunesAccount",
+		"atID": "itunesArtistId",
+		"catg": "podcastCategory",
+		"cmID": "itunesComposerId",
+		"cnID": "itunesCatalogId",
+		"cpil": "compilation",
+		"cprt": "copyright",
+		"desc": "description",
+		"disk": "disk",
+		"egid": "podcastId",
+		"geID": "itunesGenreId",
+		"gnre": "genre",
+		"hdvd": "itunesHdVideo",
+		"keyw": "podcastKeywords",
+		"ldes": "podcastDesc",
+		"ownr": "itunesOwner",
+		"pcst": "podcast",
+		"pgap": "itunesGapless",
+		"plID": "itunesAlbumId",
+		"purd": "itunesPurchaseDate",
+		"purl": "podcastUrl",
+		"rtng": "itunesAdvisory",
+		"sfID": "itunesCountryId",
+		"soar": "artistSort",
+		"soco": "composerSort",
+		"sonm": "titleSort",
+		"sosn": "tvShowSort",
+		"stik": "itunesMediaType",
+		"tmpo": "bpm",
+		"trkn": "tracknum",
+		"tven": "tvEpisodeId",
+		"tves": "tvEpisode",
+		"tvnn": "tvNetwork",
+		"tvsh": "tvShow",
+		"tvsn": "tvSeason",
+		"xID":  "xID",
 	}
 	config = map[string]map[string]string{
 		"windows": {
@@ -149,28 +205,11 @@ func checkInput(path string, tags map[string]string) (map[string]string, error) 
 	if len(tags) == 0 {
 		return nil, errors.New("Tag map is empty.")
 	}
-	exists, err := fileExists(path)
-	if err != nil {
-		return nil, err
-	}
-	if !exists {
-		return nil, errors.New("Input file does not exist: " + path)
-	}
 	tags = filterTags(tags)
 	if len(tags) == 0 {
 		return nil, errors.New("All tags were filtered.")
 	}
-	coverValue, ok := tags["artwork"]
-	if ok {
-		exists, err := fileExists(coverValue)
-		if err != nil {
-			return nil, err
-		}
-		if !exists {
-			return nil, errors.New("Input cover file does not exist: " + coverValue)
-		}
-	}
-	return tags, err
+	return tags, nil
 }
 
 func WriteTags(path string, tags map[string]string) error {
@@ -182,15 +221,59 @@ func WriteTags(path string, tags map[string]string) error {
 		return err
 	}
 	args := []string{path}
-	base := atomicPath
 	for k, v := range tags {
 		args = append(args, "--"+k, v)
 	}
 	args = append(args, "-W")
-	cmd := exec.Command(base, args...)
+	cmd := exec.Command(atomicPath, args...)
 	cmd.Stderr = os.Stdout
 	err = cmd.Run()
 	return err
+}
+
+// Clean up.
+func parseTags(stringBuffer string) map[string]string {
+	var parsedTags = map[string]string{}
+	newLineSplit := strings.Split(stringBuffer, "\n")
+	regexes := [2]string{
+		`^Atom "([©a-zA-]+)"$`,
+		`^Atom "----" \[com.apple.iTunes;([A-Z]+)]`,
+	}
+	for _, x := range newLineSplit[:len(newLineSplit)-1] {
+		colonSplit := strings.SplitN(x, " contains: ", 2)
+		for num, regexString := range regexes {
+			regex := regexp.MustCompile(regexString)
+			match := regex.FindStringSubmatch(colonSplit[0])
+			if match != nil {
+				trimmedVal := strings.TrimSpace(colonSplit[1])
+				if num == 0 {
+					resolvedKey, ok := resolveKeys[match[1]]
+					if ok {
+						parsedTags[resolvedKey] = trimmedVal
+					}
+				} else if num == 1 {
+					parsedTags[match[1]] = trimmedVal
+				}
+			}
+		}
+	}
+	return parsedTags
+}
+
+func ReadTags(path string) (map[string]string, error) {
+	var (
+		errBuffer bytes.Buffer
+		outBuffer bytes.Buffer
+	)
+	cmd := exec.Command(atomicPath, path, "-t")
+	cmd.Stderr = &errBuffer
+	cmd.Stdout = &outBuffer
+	err := cmd.Run()
+	if err != nil {
+		return nil, errors.New(errBuffer.String())
+	}
+	parsedTags := parseTags(outBuffer.String())
+	return parsedTags, err
 }
 
 func init() {
