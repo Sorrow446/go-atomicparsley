@@ -65,11 +65,11 @@ var (
 			"filename":   "AtomicParsleyWindows.exe",
 		},
 		"linux": {
-			"atomicPath": filepath.Join("/var/tmp/", "AtomicParsley"),
+			"atomicPath": filepath.Join("var", "tmp", "AtomicParsley"),
 			"filename":   "AtomicParsleyLinux",
 		},
 		"darwin": {
-			"atomicPath": filepath.Join("/var/tmp/", "AtomicParsley"),
+			"atomicPath": filepath.Join("var", "tmp", "AtomicParsley"),
 			"filename":   "AtomicParsleyMacOS",
 		},
 	}
