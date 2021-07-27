@@ -3,6 +3,7 @@ package atomicparsley
 import (
 	"bytes"
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"os"
@@ -271,6 +272,7 @@ func ReadTags(path string) (map[string]string, error) {
 	cmd.Stdout = &outBuffer
 	err := cmd.Run()
 	if err != nil {
+		fmt.Println(errBuffer.String())
 		return nil, errors.New(errBuffer.String())
 	}
 	parsedTags := parseTags(outBuffer.String())
