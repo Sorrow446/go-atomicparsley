@@ -263,6 +263,7 @@ func parseTags(stringBuffer string) map[string]string {
 }
 
 func ReadTags(path string) (map[string]string, error) {
+	fmt.Println("x")
 	var (
 		errBuffer bytes.Buffer
 		outBuffer bytes.Buffer
@@ -274,7 +275,6 @@ func ReadTags(path string) (map[string]string, error) {
 	if err != nil {
 		return nil, errors.New(errBuffer.String())
 	}
-	fmt.Println("x")
 	parsedTags := parseTags(outBuffer.String())
 	return parsedTags, err
 }
