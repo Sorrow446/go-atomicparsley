@@ -2,6 +2,9 @@
 Go wrapper for the MP4 tagger [AtomicParsley](https://github.com/wez/atomicparsley) for Windows, Linux and macOS.
 
 # Setup
+```
+go get github.com/Sorrow446/go-atomicparsley
+```
 ```go
 import ap "github.com/Sorrow446/go-atomicparsley"
 ```
