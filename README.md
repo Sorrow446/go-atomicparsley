@@ -29,16 +29,18 @@ Read all tags and print them.
 
 Output:
 ```
-ISRC: FISGC9900001
-copyright: ℗ 2000 16 Inch Records
-UPC: 743217881122
-album: Before the Storm
-year: 2001
-genre: Dance
-compilation: false
-LABEL: 16 Inch Records
-tracknum: 1 of 11
+album: Before the Storm2
+artist: Darude
 composer: Jaakko Salovaara & Ville Virtanen
+LABEL: 16 Inch Records
+UPC: 743217881122
+tracknum: 1 of 11
+title: Sandstorm
+year: 2001
+ISRC: FISGC9900001
+genre: Dance
+copyright: ℗ 2000 16 Inch Records
+compilation: false
 ```
 
 ## Write
