@@ -106,7 +106,6 @@ description
 director
 disk
 genre
-genre
 itunesAccount
 itunesAdvisory
 itunesAlbumId
