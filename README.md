@@ -1,5 +1,5 @@
 # go-atomicparsley
-Go wrapper for the mp4/m4a tagger AtomicParsley for Windows, Linux and macOS.
+Go wrapper for the MP4 tagger [AtomicParsley](https://github.com/wez/atomicparsley) for Windows, Linux and macOS.
 
 # Setup
 ```go
@@ -14,7 +14,7 @@ The appropriate binary for your OS will be automatically fetched on the first st
 ReadTags(path string) (map[string]string, error)
 ```
 ```go
-	tags, err := ap.ReadTags("17.m4a")
+	tags, err := ap.ReadTags("in.m4a")
 	if err != nil {
 		panic(err)
 	}
