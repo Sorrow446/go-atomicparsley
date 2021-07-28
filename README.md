@@ -87,7 +87,6 @@ Delete album tag.
 ```
 Remove all covers.
 
-
 # Keys
 ## Read
 ```
