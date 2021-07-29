@@ -236,7 +236,6 @@ func WriteTags(path string, tags map[string]string) error {
 		errString := fmt.Sprintf("%s\n%s", err, errBuffer.String())
 		return errors.New(errString)
 	}
-	err = cmd.Run()
 	return err
 }
 
