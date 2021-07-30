@@ -9,7 +9,7 @@ go get github.com/Sorrow446/go-atomicparsley
 import ap "github.com/Sorrow446/go-atomicparsley"
 ```
 If go get doesn't fetch the latest version, do this instead.
-```go
+```
 go get github.com/Sorrow446/go-atomicparsley@4
 ```
 The appropriate binary for your OS will be automatically fetched on the first start-up (250-500KB).
