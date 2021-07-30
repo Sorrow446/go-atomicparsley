@@ -233,7 +233,7 @@ func WriteTags(path string, tags map[string]string) error {
 	if err != nil {
 		return err
 	}
-	args := []string{path}
+	args := []string{atomicPath, path}
 	for k, v := range tags {
 		args = append(args, "--"+k, v)
 	}
