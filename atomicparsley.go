@@ -130,6 +130,9 @@ var (
 			"atomicPath": "/" + filepath.Join("var", "tmp", "AtomicParsley"),
 			"filename":   "AtomicParsleyMacOS",
 		},
+		"android": {
+			"atomicPath": "AtomicParsley",
+		},
 	}
 )
 
@@ -174,6 +177,13 @@ func downloadBinary(filename string) error {
 
 func setup(cfg map[string]string) error {
 	atomicPath = cfg["atomicPath"]
+	if osType == "android" {
+		args := []string{
+			"pkg", "install", "atomicparsley",
+		}
+		_, err := runCmd(args)
+		return err
+	}
 	exists, err := fileExists(atomicPath)
 	if err != nil {
 		return err
@@ -185,7 +195,7 @@ func setup(cfg map[string]string) error {
 	if err != nil {
 		return err
 	}
-	if osType != "windows" {
+	if osType == "linux" {
 		err = os.Chmod(atomicPath, 0755)
 	}
 	return err
@@ -216,7 +226,6 @@ func checkInput(path string, tags map[string]string) (map[string]string, error) 
 }
 
 func WriteTags(path string, tags map[string]string) error {
-	var errBuffer bytes.Buffer
 	if initErr != nil {
 		return initErr
 	}
@@ -229,13 +238,7 @@ func WriteTags(path string, tags map[string]string) error {
 		args = append(args, "--"+k, v)
 	}
 	args = append(args, "-W")
-	cmd := exec.Command(atomicPath, args...)
-	cmd.Stderr = &errBuffer
-	err = cmd.Run()
-	if err != nil {
-		errString := fmt.Sprintf("%s\n%s", err, errBuffer.String())
-		return errors.New(errString)
-	}
+	_, err = runCmd(args)
 	return err
 }
 
@@ -273,20 +276,31 @@ func ReadTags(path string) (map[string]string, error) {
 	if initErr != nil {
 		return nil, initErr
 	}
+	args := []string{
+		atomicPath, path, "-t",
+	}
+	outString, err := runCmd(args)
+	if err != nil {
+		return nil, err
+	}
+	parsedTags := parseTags(outString)
+	return parsedTags, err
+}
+
+func runCmd(args []string) (string, error) {
 	var (
 		errBuffer bytes.Buffer
 		outBuffer bytes.Buffer
 	)
-	cmd := exec.Command(atomicPath, path, "-t")
+	cmd := exec.Command(args[0], args[1:]...)
 	cmd.Stderr = &errBuffer
 	cmd.Stdout = &outBuffer
 	err := cmd.Run()
 	if err != nil {
 		errString := fmt.Sprintf("%s\n%s", err, errBuffer.String())
-		return nil, errors.New(errString)
+		return "", errors.New(errString)
 	}
-	parsedTags := parseTags(outBuffer.String())
-	return parsedTags, err
+	return outBuffer.String(), nil
 }
 
 func init() {
