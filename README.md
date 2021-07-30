@@ -1,5 +1,5 @@
 # go-atomicparsley
-Go wrapper for the MP4 tagger [AtomicParsley](https://github.com/wez/atomicparsley) for Windows, Linux and macOS.
+Go wrapper for the MP4 tagger [AtomicParsley](https://github.com/wez/atomicparsley) for Windows, Linux, macOS and Android.
 
 # Setup
 ```
