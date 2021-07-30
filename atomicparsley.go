@@ -284,7 +284,7 @@ func ReadTags(path string) (map[string]string, error) {
 		return nil, err
 	}
 	parsedTags := parseTags(outString)
-	return parsedTags, err
+	return parsedTags, nil
 }
 
 func runCmd(args []string) (string, error) {
