@@ -247,7 +247,7 @@ func parseTags(stringBuffer string) map[string]string {
 	var parsedTags = map[string]string{}
 	newLineSplit := strings.Split(stringBuffer, "\n")
 	regexes := [2]string{
-		`Atom "((?:©)[a-zA-Z]+|[a-z]+)"`,
+		`Atom "(©?[a-zA-Z]+)"`,
 		`Atom "----" \[com.apple.iTunes;([A-Z]+)]`,
 	}
 	for _, line := range newLineSplit[:len(newLineSplit)-1] {
