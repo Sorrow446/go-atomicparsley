@@ -12,7 +12,7 @@ If go get doesn't fetch the latest version, do this instead.
 ```
 go get github.com/Sorrow446/go-atomicparsley@5
 ```
-The appropriate binary for your OS will be automatically fetched on the first start-up (250-500KB).
+The appropriate binary for your OS will be automatically fetched on the first start-up (250-500kB).
 
 # Usage
 
@@ -33,7 +33,7 @@ Read all tags and print them.
 
 Output:
 ```
-album: Before the Storm2
+album: Before the Storm
 artist: Darude
 composer: Jaakko Salovaara & Ville Virtanen
 LABEL: 16 Inch Records
